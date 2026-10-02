@@ -4,7 +4,7 @@ import { command } from "./command.ts";
 import * as github from "./github.ts";
 import { digest, taskId, validateInput, verifyIssue } from "./input.ts";
 import type { Input } from "./input.ts";
-import { alive, groupAlive, identity, runManaged, signalGroup } from "./process.ts";
+import { alive, groupAlive, identity, runManaged, requestManagedStop } from "./process.ts";
 import { piArgs, piSucceeded, runPi } from "./pi.ts";
 import { Store } from "./store.ts";
 import type { Task, Run } from "./store.ts";
@@ -75,9 +75,9 @@ export class Controller {
     if (!run || run.taskId !== id) return this.status(id);
     this.store.requestStop(run.id);
     if (run.process) {
-      signalGroup(run.process, "SIGTERM");
-      await new Promise(resolve => setTimeout(resolve, task.input.stopGraceMs ?? 2000));
-      if (alive(run.process)) signalGroup(run.process, "SIGKILL");
+      requestManagedStop(run.process);
+      const deadline = Date.now() + (task.input.stopGraceMs ?? 2000) + 250;
+      while (alive(run.process) && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 25));
       if (groupAlive(run.process.pid)) throw new Error("Managed group still stopping; preserve ownership and query again");
     }
     if (!alive(run.controller)) {

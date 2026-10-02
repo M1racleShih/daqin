@@ -70,6 +70,14 @@ exit, successful check or Draft PR is not human acceptance.
 Failures preserve the checkout, saved requirements, actual run/check outcomes
 and process identities. A gated Linux launcher starts Pi/checks only after its
 identity is saved; losing the controller's pipe terminates its process group.
+The launcher tracks observed descendants by PID/start/boot, including Pi Bash
+children in separate groups. Stopping first reaches the launcher: detached
+descendants are killed directly and the main group receives SIGTERM, followed
+by escalation at the configured grace period. The launcher stays alive until
+its observed descendants stop, so a failed stop retains execution ownership.
+This trusted local mode does not contain deliberate daemonization or children
+that escape before observation. Do not kill the launcher directly; an externally
+killed launcher requires manual process and checkout reconciliation.
 An interrupted record keeps ownership until explicit `stop` reconciles it.
 Stopping an interrupted owner saves only the observed checkout digest; it does
 not approve edits made while the controller was gone. Inspect any unverified

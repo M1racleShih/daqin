@@ -9,7 +9,8 @@ import { digest, validateInput } from "../src/input.ts";
 import type { Input } from "../src/input.ts";
 import type { Issue, PullRequest } from "../src/github.ts";
 import type { runPi } from "../src/pi.ts";
-import { identity } from "../src/process.ts";
+import { alive, identity } from "../src/process.ts";
+import type { Identity } from "../src/process.ts";
 import { runManaged } from "../src/process.ts";
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
@@ -93,6 +94,7 @@ test("two Issues deliver serially and human feedback updates the original branch
 
 test("hard controller termination stops its gated executor and leaves explicit recovery ownership", async () => {
   const f = fixture();
+  let detached: Identity | undefined;
   try {
     const input = f.input(1); input.stopGraceMs = 50;
     input.checks = [{ file: process.execPath, args: ["--input-type=module", "-e",
@@ -107,6 +109,8 @@ test("hard controller termination stops its gated executor and leaves explicit r
     const deadline = Date.now() + 5000;
     while (!existsSync(marker) && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 30));
     assert.ok(existsSync(marker), "managed executor started");
+    detached = identity(JSON.parse(readFileSync(marker, "utf8")).detached);
+    assert.ok(detached, "detached executor child is alive before controller interruption");
     child.kill("SIGKILL"); await exit;
     assert.equal(f.controller.status("Fixture/repo#1").status, "interrupted");
     await assert.rejects(f.controller.continue("Fixture/repo#1"), /owns/);
@@ -117,6 +121,7 @@ test("hard controller termination stops its gated executor and leaves explicit r
     // An editor may change the checkout while its original controller is gone.
     writeFileSync(join(f.cwd, "src/value.ts"), "export const value = 123;\n");
     await f.controller.stop("Fixture/repo#1");
+    assert.equal(alive(detached), false, "owner death must also stop detached descendants");
     assert.equal(f.controller.store.active(), undefined);
     assert.equal(existsSync(f.cwd + ".daqin-lock"), false);
     assert.ok(command("git", ["status", "--porcelain"], f.cwd), "accepted snapshot preserved");
@@ -129,7 +134,10 @@ test("hard controller termination stops its gated executor and leaves explicit r
       publishOnly: true, acceptDirty: observed,
     }), /Accepted check failed/);
     assert.equal(f.counts().publications, 0, "explicit inspection still requires passing checks");
-  } finally { f.cleanup(); }
+  } finally {
+    if (alive(detached)) process.kill(-detached!.pid, "SIGKILL");
+    f.cleanup();
+  }
 });
 
 test("explicit stopping blocks publication and keeps scope changes for inspection", async () => {

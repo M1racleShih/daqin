@@ -4,7 +4,8 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { piSucceeded, runPi } from "../src/pi.ts";
-import { groupAlive, runManaged } from "../src/process.ts";
+import { alive, groupAlive, identity, runManaged } from "../src/process.ts";
+import type { Identity } from "../src/process.ts";
 
 async function fixture(source: string, extra: Partial<Parameters<typeof runPi>[0]> = {}) {
   const cwd = mkdtempSync(join(tmpdir(), "daqin-pi-test-"));
@@ -28,6 +29,48 @@ test("configured duration stops execution and descendants in the process group",
     });
     assert.equal(result.cancelled, true); assert.equal(groupAlive(pid), false);
   } finally { rmSync(cwd, { recursive: true }); }
+});
+
+test("cancellation and duration limits stop detached descendants whose parents ignore SIGTERM", async () => {
+  const detachedSource = `
+    const child = require("node:child_process").spawn(process.execPath,
+      ["-e", 'process.on("SIGTERM",()=>{});setInterval(()=>{},1000)'], {stdio:"ignore"});
+    process.on("SIGTERM",()=>{});console.log(child.pid);setInterval(()=>{},1000);
+  `;
+  const source = `
+    const child = require("node:child_process").spawn(process.execPath,
+      ["-e", ${JSON.stringify(detachedSource)}], {detached:true,stdio:["ignore","pipe","ignore"]});
+    process.on("SIGTERM",()=>{});
+    child.stdout.once("data", chunk => console.log(JSON.stringify({detached:child.pid,grandchild:Number(chunk)})));
+    setInterval(()=>{},1000);
+  `;
+  for (const mode of ["cancel", "duration"]) {
+    const abort = new AbortController();
+    let detached: Identity | undefined, grandchild: Identity | undefined;
+    let group = 0, pending = "";
+    try {
+      const result = await runManaged({ cwd: tmpdir(), file: process.execPath, args: ["-e", source],
+        signal: abort.signal, timeoutMs: mode === "duration" ? 300 : 3000, stopGraceMs: 50,
+        onSpawn: record => { group = record.pid; },
+        stdout: chunk => {
+          pending += chunk;
+          if (!detached && pending.includes("\n")) {
+            const pids = JSON.parse(pending.trim());
+            detached = identity(pids.detached); grandchild = identity(pids.grandchild);
+            if (mode === "cancel") abort.abort();
+          }
+        },
+      });
+      assert.ok(detached && grandchild, "fixture captured the detached tree before stopping");
+      assert.equal(result.cancelled, true);
+      assert.equal(groupAlive(group), false);
+      assert.equal(alive(detached), false, `${mode}: detached child must stop before ownership is released`);
+      assert.equal(alive(grandchild), false, `${mode}: detached grandchild must also stop`);
+    } finally {
+      if (alive(detached)) process.kill(-detached!.pid, "SIGKILL");
+      if (alive(grandchild)) process.kill(grandchild!.pid, "SIGKILL");
+    }
+  }
 });
 
 test("JSONL uses LF boundaries and preserves Unicode separators inside strings", async () => {

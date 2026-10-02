@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { Controller } from "../../src/controller.ts";
 import { runPi } from "../../src/pi.ts";
 import { digest } from "../../src/input.ts";
@@ -15,7 +15,12 @@ const api = {
   publishDraft: () => { throw new Error("Unexpected publication"); },
 };
 const controller = new Controller(config.state, api, options => runPi({ ...options,
-  executable: process.execPath, args: ["-e", 'console.log(JSON.stringify({type:"agent_start"}));setInterval(()=>{},1000)'],
-  onEvent: type => { if (type === "agent_start") writeFileSync(config.marker, "started\n"); },
+  executable: process.execPath, args: ["-e", `
+    const child = require("node:child_process").spawn(process.execPath,
+      ["-e", 'process.on("SIGTERM",()=>{});setInterval(()=>{},1000)'], {detached:true,stdio:"ignore"});
+    process.on("SIGTERM",()=>{});
+    require("node:fs").writeFileSync(${JSON.stringify(config.marker)}, JSON.stringify({detached:child.pid}));
+    console.log(JSON.stringify({type:"agent_start"}));setInterval(()=>{},1000);
+  `],
 }));
 try { await controller.start(input); } finally { controller.close(); }
