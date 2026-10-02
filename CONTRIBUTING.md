@@ -1,8 +1,14 @@
 # Contributing
 
-Daqin is preparing its first implementation. Start from an Issue with a
-concrete goal, scope, dependencies and observable acceptance criteria.
-Discuss architectural changes before adding a framework or adapter.
+Daqin is preparing its first implementation. Start from an approved task
+with a concrete goal, scope, dependencies and observable acceptance criteria.
+Link an Issue when one is used. A human and one agent is a complete product mode;
+custom roles and optional workflows must not require a fixed team structure.
+Use [ROADMAP.md](ROADMAP.md) to keep work within the current milestone.
+Use Mermaid diagrams for architecture, flows and states when they clarify the
+behavior; distinguish planned capabilities from implemented ones.
+The selected product stack is TypeScript, Node.js and SQLite. Discuss
+architectural changes before adding a framework or adapter.
 
 ## Local checks
 
@@ -20,7 +26,7 @@ instead of silently upgrading it. Use `dskills doctor --project .` to inspect
 the local installation. Skills are optional for contributors running checks.
 
 Keep `.dynamic-skills/config.json` and `.dynamic-skills/lock.json` under Git.
-Generated copies, runtime ownership records and history stay local. Prefer
+Generated skill copies, local execution records and history stay local. Prefer
 reading a specialist skill on demand to permanently selecting a large pack.
 
 ## Pull requests
@@ -31,7 +37,7 @@ documentation with the behavior it describes. Review the complete diff for
 credentials, machine-specific configuration and unrelated changes.
 
 AI review must identify the reviewed commit and distinguish findings from a
-human's final approval. New commits require revalidation of affected checks.
+human's final approval. Rerun affected checks when new commits change the reviewed code.
 A maintainer performs the final merge.
 
 Original contributions are submitted under the MIT License. Check third-party

@@ -1,5 +1,5 @@
 name: Task
-description: Propose a bounded, verifiable unit of work
+description: Propose a task with a clear scope and expected result
 title: "[Task] "
 body:
   - type: textarea
@@ -13,7 +13,7 @@ body:
     id: scope
     attributes:
       label: Scope and constraints
-      description: Include allowed changes, exclusions and affected interfaces.
+      description: Explain what may change, what must stay unchanged and which interfaces are affected.
     validations:
       required: true
   - type: textarea
@@ -32,4 +32,4 @@ body:
     attributes:
       value: >-
         Creating an Issue does not start an agent or grant execution permissions.
-        A maintainer must confirm scope, allowed actions and budget before a run.
+        A maintainer must confirm the scope, allowed actions and any configured resource limits before a run.

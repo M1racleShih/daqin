@@ -1,12 +1,14 @@
 # Security
 
 Daqin is pre-release software with no supported production deployment yet.
-Run future integration experiments against dedicated test repositories and
-disposable workspaces with scoped credentials.
+The initial execution mode uses trusted local repositories and the existing
+development environment. Run future integration experiments against dedicated
+test repositories and disposable workspaces with scoped credentials.
 
 Do not put credentials, personal data or raw agent sessions in an Issue,
 pull request, task snapshot, log attachment or generated artifact. A Git
-worktree isolates changes, not arbitrary code execution or shared secrets.
+worktree keeps changes separate. It does not stop a process from running code
+or reading credentials available to the same system user.
 
 For a suspected vulnerability, use GitHub's private vulnerability reporting
 option in this repository's Security tab when available. If it is unavailable,

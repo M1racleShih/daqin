@@ -1,6 +1,6 @@
 ## Problem and result
 
-Link the Issue and explain the resulting behavior.
+Explain the approved task and resulting behavior. Link the Issue when one exists.
 
 ## Validation
 
@@ -9,7 +9,7 @@ List checks actually run, their outcomes and any environment limits.
 ## Review context
 
 Note relevant specification changes, dependencies and remaining risks.
-Automated review evidence must identify the source commit and tested baseline.
+If automated review was used, identify the reviewed commit and the baseline tested with it.
 
 - [ ] The change meets the approved acceptance criteria.
 - [ ] Relevant checks pass and documentation matches the behavior.

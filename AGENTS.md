@@ -2,31 +2,49 @@
 
 ## Project state and scope
 
-Daqin is at the bootstrap stage. Read README.md and the task's approved Issue
-before implementation. Do not describe proposed adapters or workflows as
-working features. Choose the runtime and architecture through a focused,
-reviewable change before introducing a dependency stack.
+Daqin is at the bootstrap stage. Read README.md and the approved task context
+before implementation, including the Issue when one exists. Read ROADMAP.md
+for the current milestone. Do not describe proposed adapters or workflows as
+working features. The selected controller stack is TypeScript, Node.js and
+SQLite, initially on Linux. First validate GitHub and noninteractive Pi with
+one real task. Keep Git, platform and execution responsibilities small and
+separate; extract shared interfaces when a second implementation needs them.
+Do not build future adapters, TUI hosts or workflow frameworks during M0/M1.
 
 Keep repository-facing prose, comments, commit messages and templates in
 English. Respond to the user in their preferred language.
 
-## Product invariants
+## Product rules
 
 - Human approval establishes the goal and execution scope; a human performs
   the final merge. Do not merge, deploy or broaden credentials by default.
-- GitHub and GitLab are separate adapters with explicit capability checks.
-- Pi is the first execution adapter. Noninteractive and native TUI execution
-  are both requirements; Herdr is optional for headless execution.
+- Support a human with one agent as a complete mode. Roles are user-defined
+  and workflows optional; do not require Planner, Worker or Reviewer participants
+  or silently add workflow stages. Role labels do not grant permissions.
+- The first useful release supports GitHub and one noninteractive Pi agent
+  through explicit local operations. GitLab follows once the GitHub path is
+  familiar and useful. Codex collaboration, parallel tasks, native TUI and
+  optional Herdr follow demonstrated needs. These are not first-release
+  acceptance gates; verify capabilities as each is introduced.
 - Each active code task owns an isolated worktree or clone, one branch and a
-  frozen task specification. Worktrees are not security sandboxes.
-- Scheduling, attempt ownership, budgets, cancellation, retries and recovery
-  belong to deterministic code and persistent state.
-- Review uses independent context and binds to the specification version,
-  source commit and tested integration baseline. Changed inputs invalidate
-  the relevant result; an agent may not approve its own changes.
-- Viewing a run never creates another executor. Manual input uses exclusive
-  control handoff. Resume reconciles the workspace and invalidates affected
-  evidence. Unsupported capabilities must fail explicitly.
+  saved copy of the accepted task requirements. Commit the task package and handoff with its
+  branch and retain them on merge. Worktrees are not security sandboxes.
+- Natural-language discussion does not start execution. Local operations
+  check task state and accepted inputs. When platform comment control is added,
+  check actor authorization and event versions, deduplicate commands and exclude
+  controller output. The prototype uses the operator's platform account;
+  label automated posts clearly.
+- Ordinary program logic and saved records must decide which run owns a
+  task, how to stop it, and whether it is safe to retry after an interruption. Enforce configured resource limits;
+  do not impose universal team sizes, task durations or repair-round caps.
+- When independent agent review is enabled, use independent context and
+  identify the requirements, source commit and integration baseline reviewed.
+  Recheck affected results when those inputs change. An agent may not independently
+  approve its own changes; users may choose human review without another agent.
+- When interactive viewing is added, it must not create another executor.
+  Manual input requires exclusive control handoff. For current continuation,
+  check the workspace and redo any affected validation before running.
+  Unsupported capabilities must fail explicitly.
 
 ## Working rules
 
@@ -60,7 +78,7 @@ dskills --json read SKILL_ID
 ```
 
 Read a specialist skill before applying it. Use `dskills plug SKILL_ID
---project .` only when native discovery will help recurring work. Review and
+--project .` only when the development clients should discover that skill for recurring work. Review and
 commit the resulting config and lock changes. Skills do not grant permission
 to publish, access secrets, launch agents or change external systems.
 
@@ -73,7 +91,7 @@ does not establish support for those tools as Daqin execution adapters.
 ## Verification and publication
 
 Run `python3 scripts/check_repository.py` (or `make check`) for bootstrap
-documents and configuration. It checks text hygiene, JSON and local document
+documents and configuration. It checks text formatting, JSON and local document
 links; it does not test the product or remote URLs. Add relevant behavioral
 and integration checks as implementation appears.
 
