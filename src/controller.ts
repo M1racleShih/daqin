@@ -82,7 +82,10 @@ export class Controller {
     }
     if (!alive(run.controller)) {
       task.status = "stopped"; task.error = "Controller interrupted; managed execution stopped and explicit continuation required";
-      if (existsSync(join(task.input.workspace, ".git"))) task.workspaceDigest = workspaceDigest(task.input);
+      if (existsSync(join(task.input.workspace, ".git"))) {
+        // Stopping a vanished owner observes files; it cannot approve intervening edits.
+        task.observedWorkspaceDigest = workspaceDigest(task.input);
+      }
       releaseStaleLease(task, run, this.store.directory);
       this.store.finish(task, run);
     }

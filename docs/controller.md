@@ -71,6 +71,9 @@ Failures preserve the checkout, saved requirements, actual run/check outcomes
 and process identities. A gated Linux launcher starts Pi/checks only after its
 identity is saved; losing the controller's pipe terminates its process group.
 An interrupted record keeps ownership until explicit `stop` reconciles it.
+Stopping an interrupted owner saves only the observed checkout digest; it does
+not approve edits made while the controller was gone. Inspect any unverified
+changes and pass their observed digest with `--accept-dirty` before continuation.
 PID start time and boot identity prevent signalling an unrelated reused PID.
 Unknown process groups or another state's lease require human reconciliation.
 

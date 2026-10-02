@@ -95,6 +95,8 @@ test("hard controller termination stops its gated executor and leaves explicit r
   const f = fixture();
   try {
     const input = f.input(1); input.stopGraceMs = 50;
+    input.checks = [{ file: process.execPath, args: ["--input-type=module", "-e",
+      'const {value}=await import("./src/value.ts"); if(value!==0) process.exitCode=4;' ] }];
     const config = join(f.root, "driver.json");
     const marker = join(f.root, "running");
     writeFileSync(config, JSON.stringify({ input, state: join(f.root, "state"), marker }));
@@ -112,10 +114,21 @@ test("hard controller termination stops its gated executor and leaves explicit r
     const run = f.controller.store.active()!;
     const end = Date.now() + 4000;
     while (run.process && identity(run.process.pid) && Date.now() < end) await new Promise(resolve => setTimeout(resolve, 30));
+    // An editor may change the checkout while its original controller is gone.
+    writeFileSync(join(f.cwd, "src/value.ts"), "export const value = 123;\n");
     await f.controller.stop("Fixture/repo#1");
     assert.equal(f.controller.store.active(), undefined);
     assert.equal(existsSync(f.cwd + ".daqin-lock"), false);
     assert.ok(command("git", ["status", "--porcelain"], f.cwd), "accepted snapshot preserved");
+    assert.equal(f.controller.store.task("Fixture/repo#1")!.workspaceDigest, undefined,
+      "stop must not accept edits made after the controller disappeared");
+    await assert.rejects(f.controller.continue("Fixture/repo#1", { publishOnly: true }), /Workspace changes differ/);
+    const observed = f.controller.store.task("Fixture/repo#1")!.observedWorkspaceDigest;
+    assert.ok(observed);
+    await assert.rejects(f.controller.continue("Fixture/repo#1", {
+      publishOnly: true, acceptDirty: observed,
+    }), /Accepted check failed/);
+    assert.equal(f.counts().publications, 0, "explicit inspection still requires passing checks");
   } finally { f.cleanup(); }
 });
 
