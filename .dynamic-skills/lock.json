@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "skills": {
+    "dynamic-skills": {
+      "digest": "0fa76a60621773144f092787884a89f45a9c3fd592b73d638cba2886d129423f",
+      "source": {
+        "kind": "builtin",
+        "name": "dynamic-skills"
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "agents": [
+    "claude",
+    "codex",
+    "kimi",
+    "pi"
+  ],
+  "mode": "copy",
+  "schema_version": 1,
+  "skills": [
+    "dynamic-skills"
+  ],
+  "track": true
+}

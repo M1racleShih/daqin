@@ -1,0 +1,35 @@
+name: Task
+description: Propose a bounded, verifiable unit of work
+title: "[Task] "
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal and user outcome
+      description: Explain the problem and the observable result.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope and constraints
+      description: Include allowed changes, exclusions and affected interfaces.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: List evidence that would demonstrate completion.
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies and environment
+      description: Link prerequisite work and describe reproducible checks.
+  - type: markdown
+    attributes:
+      value: >-
+        Creating an Issue does not start an agent or grant execution permissions.
+        A maintainer must confirm scope, allowed actions and budget before a run.

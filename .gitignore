@@ -1,0 +1,41 @@
+# Local configuration, credentials, sessions and execution state
+.env
+.env.*
+!.env.example
+!.env.*.example
+*.pem
+*.key
+*.log
+*.pid
+*.tmp
+*.swp
+.DS_Store
+Thumbs.db
+/.qinxi/
+/.herdr/
+/.agents/
+/.codex/
+/.claude/
+/.kimi/
+/AGENTS.override.md
+
+# Generated skills and local dskills state
+/.pi/*
+!/.pi/settings.json
+/.dynamic-skills/*
+!/.dynamic-skills/.gitignore
+!/.dynamic-skills/config.json
+!/.dynamic-skills/lock.json
+
+# Build outputs, dependencies and editor state
+node_modules/
+dist/
+build/
+coverage/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.cache/
+.idea/
+.vscode/
