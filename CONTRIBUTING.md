@@ -31,6 +31,18 @@ reading a specialist skill on demand to permanently selecting a large pack.
 
 ## Pull requests
 
+For the M0–M3 development effort, reuse the existing checkout serially and use
+one `codex/` branch per task. Keep one active writer; the controller developer
+and Pi must not edit the same checkout concurrently. Before switching tasks or
+branches, stop managed processes, commit or preserve changes, and verify the
+target branch, starting commit and residual run data. Do not discard unknown
+changes with reset, clean or file replacement. This exception applies to
+Daqin's own development only and does not expand Pi permissions.
+
+Product tasks use a dedicated checkout. v0.1 may serially reuse one dedicated
+clone after state checks before reassignment; continuation restores and verifies
+the original task branch.
+
 Use an isolated branch and worktree for concurrent work. Describe the user
 problem, resulting behavior, linked Issue and relevant validation. Include
 documentation with the behavior it describes. Review the complete diff for

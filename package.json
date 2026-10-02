@@ -1,0 +1,12 @@
+{
+  "name": "daqin",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=24.18.0" },
+  "scripts": {
+    "test": "node --test test/*.test.ts",
+    "check": "python3 scripts/check_repository.py && npm test",
+    "m0": "node src/m0.ts"
+  }
+}

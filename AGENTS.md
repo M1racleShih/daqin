@@ -26,9 +26,11 @@ English. Respond to the user in their preferred language.
   familiar and useful. Codex collaboration, parallel tasks, native TUI and
   optional Herdr follow demonstrated needs. These are not first-release
   acceptance gates; verify capabilities as each is introduced.
-- Each active code task owns an isolated worktree or clone, one branch and a
-  saved copy of the accepted task requirements. Commit the task package and handoff with its
-  branch and retain them on merge. Worktrees are not security sandboxes.
+- Each product execution task owns a dedicated checkout, one branch and a
+  saved copy of the accepted task requirements. v0.1 may serially reuse one
+  dedicated clone after checking its state before reassignment; continuing an
+  old task restores and verifies its branch. Commit the task package and handoff
+  with its branch and retain them on merge. Checkouts are not security sandboxes.
 - Natural-language discussion does not start execution. Local operations
   check task state and accepted inputs. When platform comment control is added,
   check actor authorization and event versions, deduplicate commands and exclude
@@ -52,7 +54,13 @@ English. Respond to the user in their preferred language.
 2. Confirm task scope and acceptance evidence. Ask about material ambiguity;
    infer routine reversible choices and keep independent work moving.
 3. Use a `codex/` branch for Codex work unless the task specifies a branch.
-   Keep one active writer per task branch and worktree.
+   Daqin's M0–M3 development reuses the existing checkout serially, with one
+   active writer. No new worktree is required for each development task.
+   Before changing task or branch, stop managed processes, commit or preserve
+   changes, and verify the target branch, starting commit and residual run data.
+   Never use reset, clean or file replacement to discard unknown changes.
+   This development exception does not expand Pi's scope, writable paths or
+   agent count; product execution still uses a dedicated checkout.
 4. Make the smallest coherent change. Do not copy unlicensed source or add
    integrations, tools or permissions beyond the task.
 5. Run checks suited to the change. Add tests for behavior and regressions,

@@ -80,6 +80,25 @@ All are planned; none has passed runtime acceptance yet.
 
 ## Development setup
 
+### M0 experiment
+
+The experimental entry point is `npm run m0 -- INPUT.json` on Linux with
+Node.js 24.18+, Git, authenticated GitHub CLI and Pi 1.0.0. It expects a prepared,
+clean dedicated checkout on the accepted task branch. It records the Issue
+snapshot, runs one Pi, independently checks changes, commits the task package
+and publishes a Draft PR. It is not the repeatable v0.1 controller.
+
+The local input specifies `repo`, `issue`, `workspace`, `branch`, `base`,
+`startingCommit`, `issueUpdatedAt`, `issueBodySha256`, `taskPath`, exact
+`allowedPaths` and `checks` (executable plus argument array). Store machine paths
+and execution input under the ignored `.daqin/` directory. Review the accepted
+Issue and allowed paths before running. Signals stop Pi's Linux process group;
+failures preserve the checkout for inspection. Do not rerun blindly after a
+failure or uncertain publication. This trusted local mode is not a sandbox.
+
+Run `npm test` for local process/protocol fixtures. M0 integration requires a
+real sandbox Issue, Pi execution and independently confirmed Draft PR.
+
 The selected product stack is TypeScript, Node.js and SQLite. Runtime
 implementation, package layout and adapter interfaces are still to be built.
 This bootstrap only needs Git and Python 3.10+ for repository checks; Python
