@@ -14,8 +14,9 @@ Daqin means “Great Qin,” inspired by the Qin dynasty's unification and share
 standards. The goal is to let different agents work together with shared task and
 delivery rules while preserving each tool's native capabilities.
 
-> **Status: project bootstrap.** There is no runnable controller or released
-> agent integration yet. The behavior below describes the intended product.
+> **Status: pre-release implementation.** M0 has real delivery and stop evidence.
+> The local controller is implemented; M1–M3 acceptance and v0.1 release remain
+> pending. See the [controller guide](docs/controller.md) for current operations.
 
 ## Work your way
 
@@ -52,7 +53,8 @@ flowchart LR
 
 The [Roadmap](ROADMAP.md) moves through a real integration experiment,
 repeatable delivery, basic failure handling and a useful real-project task.
-All are planned; none has passed runtime acceptance yet.
+M0 has produced a verified Draft PR and actual checks. The complete M0–M3
+acceptance gate, including human feedback and merge, remains pending.
 
 ## Design boundaries
 
@@ -99,10 +101,10 @@ failure or uncertain publication. This trusted local mode is not a sandbox.
 Run `npm test` for local process/protocol fixtures. M0 integration requires a
 real sandbox Issue, Pi execution and independently confirmed Draft PR.
 
-The selected product stack is TypeScript, Node.js and SQLite. Runtime
-implementation, package layout and adapter interfaces are still to be built.
-This bootstrap only needs Git and Python 3.10+ for repository checks; Python
-is used for those checks, not for the planned controller.
+The controller uses TypeScript, Node.js 24.18+ and built-in SQLite on Linux.
+GitHub operations use the authenticated GitHub CLI; Pi 1.0.0 runs noninteractively.
+Python 3.10+ checks repository documents and configuration.
+Use `npm ci` followed by `npm run check`; see the [controller guide](docs/controller.md).
 
 ```sh
 git clone git@github.com:M1racleShih/daqin.git

@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 import { piSucceeded, runPi } from "../src/pi.ts";
+import { groupAlive, runManaged } from "../src/process.ts";
 
 async function fixture(source: string, extra: Partial<Parameters<typeof runPi>[0]> = {}) {
   const cwd = mkdtempSync(join(tmpdir(), "daqin-pi-test-"));
@@ -15,6 +16,18 @@ test("settlement and successful process exit are both required", async () => {
   assert.equal(piSucceeded(await fixture('console.log(JSON.stringify({type:"agent_end"}))')), false);
   assert.equal(piSucceeded(await fixture('console.log(JSON.stringify({type:"agent_settled"}))')), true);
   assert.equal(piSucceeded(await fixture('console.log(JSON.stringify({type:"agent_settled"}));process.exitCode=1')), false);
+});
+
+test("configured duration stops execution and descendants in the process group", async () => {
+  const cwd = mkdtempSync(join(tmpdir(), "daqin-limit-test-"));
+  let pid = 0;
+  try {
+    const result = await runManaged({ cwd, file: process.execPath,
+      args: ["-e", 'require("node:child_process").spawn(process.execPath,["-e","setInterval(()=>{},1000)"],{stdio:"inherit"});setInterval(()=>{},1000)'],
+      timeoutMs: 150, stopGraceMs: 50, onSpawn: record => { pid = record.pid; },
+    });
+    assert.equal(result.cancelled, true); assert.equal(groupAlive(pid), false);
+  } finally { rmSync(cwd, { recursive: true }); }
 });
 
 test("JSONL uses LF boundaries and preserves Unicode separators inside strings", async () => {

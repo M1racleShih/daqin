@@ -2,7 +2,7 @@
 
 ## Project state and scope
 
-Daqin is at the bootstrap stage. Read README.md and the approved task context
+Daqin has a pre-release local controller; full v0.1 acceptance is pending. Read README.md and the approved task context
 before implementation, including the Issue when one exists. Read ROADMAP.md
 for the current milestone. Do not describe proposed adapters or workflows as
 working features. The selected controller stack is TypeScript, Node.js and

@@ -1,4 +1,5 @@
-import { spawn } from "node:child_process";
+import { runManaged } from "./process.ts";
+import type { Identity } from "./process.ts";
 
 export type PiSummary = {
   exitCode: number | null;
@@ -26,7 +27,8 @@ export async function runPi(options: {
   args?: string[];
   signal?: AbortSignal;
   onEvent?: (type: string) => void;
-  onSpawn?: (pid: number) => void;
+  onSpawn?: (pid: number, record: Identity) => void;
+  timeoutMs?: number;
   stopGraceMs?: number;
 }): Promise<PiSummary> {
   if (process.platform !== "linux") throw new Error("Pi process control requires Linux");
@@ -35,22 +37,11 @@ export async function runPi(options: {
     exitCode: null, signal: null, settled: false, cancelled: false,
     protocolErrors: 0, assistantErrors: 0, events: {}, tools: {},
   };
-  const child = spawn(options.executable ?? "pi", [...(options.args ?? piArgs), options.prompt], {
-    cwd: options.cwd, detached: true, stdio: ["ignore", "pipe", "pipe"],
-  });
   let pending = "";
-  let killTimer: ReturnType<typeof setTimeout> | undefined;
-  const killGroup = (signal: NodeJS.Signals) => {
-    if (!child.pid) return;
-    try { process.kill(-child.pid, signal); } catch (error) {
-      if ((error as NodeJS.ErrnoException).code !== "ESRCH") throw error;
-    }
-  };
-  const stop = () => {
-    summary.cancelled = true;
-    killGroup("SIGTERM");
-    killTimer ??= setTimeout(() => killGroup("SIGKILL"), options.stopGraceMs ?? 2000);
-  };
+  const abort = new AbortController();
+  const stop = () => abort.abort();
+  options.signal?.addEventListener("abort", stop, { once: true });
+  if (options.signal?.aborted) stop();
   const line = (record: string) => {
     try {
       const event = JSON.parse(record.replace(/\r$/, ""));
@@ -66,35 +57,28 @@ export async function runPi(options: {
       options.onEvent?.(event.type);
     } catch { summary.protocolErrors++; }
   };
-  child.stdout.setEncoding("utf8");
-  child.stdout.on("data", (chunk: string) => {
-    pending += chunk;
-    let end: number;
-    while ((end = pending.indexOf("\n")) >= 0) {
-      line(pending.slice(0, end));
-      pending = pending.slice(end + 1);
-    }
-    if (pending.length > 8 * 1024 * 1024) { summary.protocolErrors++; pending = ""; stop(); }
-  });
-  // Drain diagnostics without persisting raw sessions, paths or credentials.
-  child.stderr.resume();
-  options.signal?.addEventListener("abort", stop, { once: true });
-  return await new Promise((resolve, reject) => {
-    child.once("spawn", () => {
-      try { options.onSpawn?.(child.pid!); } catch (error) { stop(); reject(error); }
+  try {
+    const result = await runManaged({
+      cwd: options.cwd, file: options.executable ?? "pi",
+      args: [...(options.args ?? piArgs), options.prompt], signal: abort.signal,
+      timeoutMs: options.timeoutMs, stopGraceMs: options.stopGraceMs,
+      onSpawn: record => options.onSpawn?.(record.pid, record),
+      stdout: chunk => {
+        pending += chunk;
+        let end: number;
+        while ((end = pending.indexOf("\n")) >= 0) {
+          line(pending.slice(0, end));
+          pending = pending.slice(end + 1);
+        }
+        if (pending.length > 8 * 1024 * 1024) {
+          summary.protocolErrors++; pending = ""; stop();
+        }
+      },
     });
-    child.once("error", reject);
-    child.once("close", (code, signal) => {
-      if (killTimer) clearTimeout(killTimer);
-      // Terminate any descendants still in the managed process group.
-      killGroup("SIGKILL");
-      options.signal?.removeEventListener("abort", stop);
-      if (pending) summary.protocolErrors++;
-      summary.exitCode = code;
-      summary.signal = signal;
-      resolve(summary);
-    });
-  });
+    if (pending) summary.protocolErrors++;
+    return { ...summary, ...result };
+  } finally { options.signal?.removeEventListener("abort", stop); }
+
 }
 
 export function piSucceeded(result: PiSummary): boolean {

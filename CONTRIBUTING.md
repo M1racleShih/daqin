@@ -1,6 +1,6 @@
 # Contributing
 
-Daqin is preparing its first implementation. Start from an approved task
+Daqin is validating its first usable release. Start from an approved task
 with a concrete goal, scope, dependencies and observable acceptance criteria.
 Link an Issue when one is used. A human and one agent is a complete product mode;
 custom roles and optional workflows must not require a fixed team structure.
@@ -12,10 +12,10 @@ architectural changes before adding a framework or adapter.
 
 ## Local checks
 
-Run `python3 scripts/check_repository.py` or `make check`. No product runtime
-or model credentials are needed for the bootstrap checks. CI runs the same
-command on main and on pull requests. These are repository checks, not an
-end-to-end claim about agent coordination.
+Run `npm ci` and `make check` for document checks, TypeScript checking and
+local behavioral/failure fixtures. These checks use disposable local fixtures
+and do not need model credentials or production access. CI runs them on main
+and pull requests. Real Pi/GitHub evidence remains separate.
 
 ## Skills
 

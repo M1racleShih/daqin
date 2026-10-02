@@ -1,6 +1,7 @@
 # Roadmap
 
-Daqin is at the bootstrap stage. No runtime milestone has passed yet.
+Daqin has a pre-release local controller. M0 has actual delivery and stop
+evidence; M1–M3 acceptance and the v0.1 gate remain pending.
 The first useful release targets **GitHub and one noninteractive Pi agent** on
 Linux. Milestones describe observable outcomes, not calendar commitments.
 
