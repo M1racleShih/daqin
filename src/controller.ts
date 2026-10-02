@@ -65,6 +65,7 @@ export class Controller {
     } catch { platformError = "GitHub status unavailable; delivery state is unconfirmed"; }
     return { id, status, sourceCommit: task.lastCommit, acceptedVersion: task.input.issueUpdatedAt,
       pr, run, error: task.error, platformError, workspaceDigest: task.workspaceDigest,
+      observedWorkspaceDigest: task.observedWorkspaceDigest,
       runs: this.store.runs(id) };
   }
   async stop(id: string) {
@@ -117,6 +118,7 @@ export class Controller {
   }) {
     const { input } = task;
     let release: (() => void) | undefined;
+    let scopeAccepted = false;
     const abort = new AbortController();
     const stop = () => { this.store.requestStop(run.id); abort.abort(); };
     process.once("SIGINT", stop); process.once("SIGTERM", stop);
@@ -187,6 +189,7 @@ export class Controller {
       verifySnapshots(task);
       auditPaths(input, input.allowedPaths, []);
       auditPaths(input, changedPaths(input.workspace), Object.keys(task.snapshots));
+      scopeAccepted = true;
       if (options.adopt) {
         // Adoption only records the existing delivery; it does not claim new agent work.
         task.status = "delivered"; task.error = undefined;
@@ -265,6 +268,7 @@ export class Controller {
       task.pr = this.api.publishDraft(input.repo, input.branch, input.base, issue.title, bodyPath);
       if (task.pr.headRefOid !== task.lastCommit) throw new Error("PR head differs from verified source commit");
       task.status = "delivered"; task.error = undefined; task.workspaceDigest = undefined;
+      task.observedWorkspaceDigest = undefined;
       if (options.feedback) task.feedbackKey = digest(JSON.stringify(options.feedback));
       run.result = { pi: piResult, checks: results, sourceCommit: task.lastCommit, pr: task.pr };
       return { id: task.id, status: task.status, sourceCommit: task.lastCommit, pr: task.pr };
@@ -272,7 +276,14 @@ export class Controller {
       task.status = this.store.cancelled(run.id) || abort.signal.aborted ? "stopped" : "failed";
       task.error = safeError(error); run.error = task.error;
       if (existsSync(join(input.workspace, ".git"))) {
-        try { task.workspaceDigest = workspaceDigest(input); } catch { /* Preserve the original failure. */ }
+        try {
+          task.observedWorkspaceDigest = workspaceDigest(input);
+          if (scopeAccepted) {
+            verifySnapshots(task);
+            auditPaths(input, changedPaths(input.workspace), Object.keys(task.snapshots));
+            task.workspaceDigest = task.observedWorkspaceDigest;
+          }
+        } catch { /* Preserve the original failure; never accept unknown changes through a retry. */ }
       }
       throw new Error(task.error);
     } finally {

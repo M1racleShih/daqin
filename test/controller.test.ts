@@ -136,9 +136,28 @@ test("explicit stopping blocks publication and keeps scope changes for inspectio
     const rejection = assert.rejects(pending, /Pi failed|cancelled/);
     await ready;
     await assert.rejects(f.controller.continue("Fixture/repo#1"), /owns/);
+    const another = new Controller(join(f.root, "other-state"), f.api, f.pi);
+    try {
+      await assert.rejects(another.start(f.input(2)), /ownership lease/);
+      assert.ok(existsSync(f.cwd + ".daqin-lock"));
+    } finally { another.close(); }
     await f.controller.stop("Fixture/repo#1"); await rejection;
     assert.equal(f.counts().publications, 0);
     assert.equal(f.controller.store.task("Fixture/repo#1")!.status, "stopped");
+  } finally { f.cleanup(); }
+});
+
+test("unknown dirty changes remain unaccepted after repeated refused continuations", async () => {
+  const f = fixture();
+  try {
+    await f.controller.start(f.input(1));
+    writeFileSync(join(f.cwd, "src/value.ts"), "export const value = 123;\n");
+    for (let attempt = 0; attempt < 2; attempt++) {
+      await assert.rejects(f.controller.continue("Fixture/repo#1", { publishOnly: true }), /Workspace changes differ/);
+      assert.equal(f.controller.store.task("Fixture/repo#1")!.workspaceDigest, undefined);
+      assert.ok(f.controller.store.task("Fixture/repo#1")!.observedWorkspaceDigest);
+    }
+    assert.equal(f.counts().executions, 1);
   } finally { f.cleanup(); }
 });
 
@@ -154,6 +173,50 @@ test("failed checks preserve changes and evidence without publishing", async () 
     assert.equal((f.controller.store.runs(task.id)[0].result as { checks: { exitCode: number }[] }).checks[0].exitCode, 4);
     assert.equal(f.controller.store.active(), undefined);
   } finally { f.cleanup(); }
+});
+
+test("Pi failure preserves its partial edits and blocks publishing", async () => {
+  const f = fixture();
+  try {
+    f.controller.executePi = async options => ({ ...await f.pi(options), assistantErrors: 1 });
+    await assert.rejects(f.controller.start(f.input(1)), /Pi failed/);
+    assert.equal(f.counts().publications, 0);
+    assert.equal(f.controller.store.task("Fixture/repo#1")!.status, "failed");
+    assert.ok(command("git", ["status", "--porcelain"], f.cwd));
+  } finally { f.cleanup(); }
+});
+
+test("checks that mutate accepted source invalidate their results", async () => {
+  const f = fixture();
+  try {
+    const input = f.input(1);
+    input.checks = [{ file: process.execPath, args: ["-e", 'require("node:fs").writeFileSync("src/value.ts","export const value = 999;\\n")'] }];
+    await assert.rejects(f.controller.start(input), /Checks changed task inputs/);
+    assert.equal(f.counts().publications, 0);
+  } finally { f.cleanup(); }
+});
+
+test("a lost push response preserves the commit and publish-only recovery does not rerun Pi", async () => {
+  const f = fixture();
+  const priorPath = process.env.PATH;
+  try {
+    const realGit = command("which", ["git"]);
+    const marker = join(f.root, "lost-response");
+    const script = `#!${process.execPath}\nimport {execFileSync} from "node:child_process";import {existsSync,writeFileSync} from "node:fs";
+const args=process.argv.slice(2);const output=execFileSync(${JSON.stringify(realGit)},args,{encoding:"utf8"});process.stdout.write(output);
+if(args[0]==="push"&&!existsSync(${JSON.stringify(marker)})){writeFileSync(${JSON.stringify(marker)},"lost");process.exitCode=1;}
+`;
+    writeFileSync(join(f.root, "git"), script, { mode: 0o755 });
+    process.env.PATH = f.root + ":" + priorPath;
+    const input = f.input(1);
+    await assert.rejects(f.controller.start(input), /External Git/);
+    const task = f.controller.store.task("Fixture/repo#1")!;
+    assert.equal(f.controller.store.runs(task.id)[0].phase, "pushing");
+    assert.equal(command(realGit, ["ls-remote", "origin", `refs/heads/${input.branch}`], f.cwd).split(/\s/)[0], task.lastCommit);
+    await f.controller.continue(task.id, { publishOnly: true });
+    assert.deepEqual(f.counts(), { executions: 1, publications: 1 });
+    assert.equal(f.controller.store.task(task.id)!.status, "delivered");
+  } finally { process.env.PATH = priorPath; f.cleanup(); }
 });
 
 test("out-of-scope edits and snapshot tampering block delivery", async () => {

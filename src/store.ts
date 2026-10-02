@@ -11,6 +11,7 @@ export type Task = {
   id: string; input: Input; status: string; lastCommit: string; baseCommit: string;
   snapshots: Record<string, string>; pr?: PullRequest; workspaceDigest?: string; error?: string;
   feedback?: ReturnType<typeof readFeedback>; feedbackKey?: string;
+  observedWorkspaceDigest?: string;
 };
 export type Run = {
   id: string; taskId: string; controller: Identity; process?: Identity; phase: string;
