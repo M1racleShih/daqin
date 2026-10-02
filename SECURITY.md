@@ -1,6 +1,6 @@
 # Security
 
-Qinxi is pre-release software with no supported production deployment yet.
+Daqin is pre-release software with no supported production deployment yet.
 Run future integration experiments against dedicated test repositories and
 disposable workspaces with scoped credentials.
 

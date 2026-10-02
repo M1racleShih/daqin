@@ -2,7 +2,7 @@
 
 ## Project state and scope
 
-Qinxi is at the bootstrap stage. Read README.md and the task's approved Issue
+Daqin is at the bootstrap stage. Read README.md and the task's approved Issue
 before implementation. Do not describe proposed adapters or workflows as
 working features. Choose the runtime and architecture through a focused,
 reviewable change before introducing a dependency stack.
@@ -45,7 +45,7 @@ English. Respond to the user in their preferred language.
 
 Do not start additional agents unless the user explicitly authorizes the
 delegation, task scope and writable paths. This instruction applies to
-development of Qinxi; the product must separately enforce its user's runtime
+development of Daqin; the product must separately enforce its user's runtime
 authorization for an agent team.
 
 ## Skills
@@ -68,7 +68,7 @@ Codex reads AGENTS.md; Claude Code imports it through CLAUDE.md. Kimi and Pi
 also use AGENTS.md. Pi's committed settings load the shared skill directory
 and exclude its duplicate generated skill directory. Restart or reload the
 development client when its native skill discovery requires it. This setup
-does not establish support for those tools as Qinxi execution adapters.
+does not establish support for those tools as Daqin execution adapters.
 
 ## Verification and publication
 

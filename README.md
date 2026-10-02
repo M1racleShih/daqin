@@ -1,18 +1,18 @@
 <p align="center">
-  <img src="assets/qinxi-mark.png" width="160" alt="Qinxi seal: paths converging around a central mark">
+  <img src="assets/daqin-mark.png" width="160" alt="Daqin seal: paths converging around a central mark">
 </p>
 
-# Qinxi
+# Daqin
 
 **One mission. Many agents. Every handoff accounted for.**
 
-Qinxi is a Git-native coordination project for coding agents. It is designed
+Daqin is a Git-native coordination project for coding agents. It is designed
 to turn approved goals into isolated tasks, reviewed pull requests or merge
 requests, and a traceable path to a human merge on GitHub and GitLab.
 
-The name means “Qin seal,” drawing on the Qin dynasty's tradition of unified
-standards and seals as a sign of authority. Different tools share one task
-and delivery contract while keeping their native capabilities.
+Daqin means “Great Qin,” inspired by the Qin dynasty's unification and shared
+standards. It brings different agents together under one task and delivery
+contract while preserving their native capabilities.
 
 > **Status: project bootstrap.** There is no runnable controller or released
 > agent integration yet. The behavior below describes the intended product.
@@ -64,8 +64,8 @@ runtime, package layout and adapter interfaces will be selected during the
 first implementation milestone; Python is only used for the current checks.
 
 ```sh
-git clone git@github.com:M1racleShih/qinxi.git
-cd qinxi
+git clone git@github.com:M1racleShih/daqin.git
+cd daqin
 python3 scripts/check_repository.py
 ```
 

@@ -1,6 +1,6 @@
 # Contributing
 
-Qinxi is preparing its first implementation. Start from an Issue with a
+Daqin is preparing its first implementation. Start from an Issue with a
 concrete goal, scope, dependencies and observable acceptance criteria.
 Discuss architectural changes before adding a framework or adapter.
 
