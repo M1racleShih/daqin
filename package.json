@@ -1,0 +1,20 @@
+{
+  "name": "daqin",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.18.0"
+  },
+  "scripts": {
+    "daqin": "node src/cli.ts",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test test/*.test.ts",
+    "check": "python3 scripts/check_repository.py && npm run typecheck && npm test",
+    "m0": "node src/m0.ts"
+  },
+  "devDependencies": {
+    "@types/node": "26.6.4",
+    "typescript": "7.0.2"
+  }
+}

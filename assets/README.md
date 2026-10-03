@@ -1,7 +1,7 @@
 # Daqin identity
 
 The emblem draws on a carved Qin seal. Converging paths and a central mark
-represent unified coordination and an accountable handoff. Vermilion and ivory
+represent unified coordination and a handoff whose result can be checked. Vermilion and ivory
 keep it recognizable on light and dark backgrounds.
 
 `daqin-mark.png` is the original generated raster master, with transparency
